@@ -9,6 +9,9 @@ Subject = "Electrical Engineering and Computer Science"
 Session = "Summer 2023"
 CourseCode = "3221"
 
+PassportYorkUsername = "yourusername"
+PassportYorkPassword = "yourpassword"
+
 url = "https://w2prod.sis.yorku.ca/Apps/WebObjects/cdm.woa/"
 
 # Configure the WebDriver
@@ -80,6 +83,7 @@ search_button = driver.find_element(By.XPATH, "//input[@type='submit' and @value
 search_button.click()
 print("Search button clicked")
 
+time.sleep(random.uniform(1, 2))
 
 # Wait for the new page to load
 WebDriverWait(driver, 10).until(
@@ -100,5 +104,62 @@ avalibility_link = driver.find_element(By.XPATH, "//a[contains(text(), 'Please c
 avalibility_link.click()
 print("Avalibility button clicked")
 
+time.sleep(random.uniform(1, 2))
+
+try:
+    # Fill in the Passport York login information
+    username_feild = driver.find_element(By.ID, "mli")
+    username_feild.send_keys(PassportYorkUsername)
+
+    time.sleep(random.uniform(1, 2))
+
+    password_feild = driver.find_element(By.ID, "password")
+    password_feild.send_keys(PassportYorkPassword)
+    print("Passport York login entered")
+
+    # press enter on keyboard
+    password_feild.send_keys(u'\ue007')
+    
+
+
+except:
+    try:
+        # check to see if page loaded
+        WebDriverWait(driver, 60).until(
+            EC.presence_of_element_located((By.XPATH, "//td[contains(text(), 'Course Description')]"))
+        )
+        print("No login required")
+    
+    except:
+
+        print("login did not work")
+        
+        #exit the python script
+        driver.quit()
+        exit()
+
+time.sleep(random.uniform(1, 2))
+
+try:
+    # check to see if page loaded
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//td[contains(text(), 'Course Description')]"))
+    )
+    time.sleep(random.uniform(1, 2))
+    
+    #Check to see if the course is full or open
+    try:
+        # Find and click on the login button
+        course_status = driver.find_element(By.XPATH, "//td[contains(text(), 'Full')]")
+        print("The course is full")
+    except:
+        print("The course is open!!!")
+
+except:
+    print("Page did not load")
+
+time.sleep(random.uniform(1, 2))
+
+
 # Wait for the new page to load
-time.sleep(5)
+time.sleep(10)
