@@ -22,10 +22,28 @@ class Course:
         self.subscribers.remove(userID)
 
 
+# loads the saved list of courses
+def loadCourses():
+    try:
+        with open('courses.pickle', 'rb') as f:
+            return pickle.load(f)
+    except:
+        return []
+
+
+# saves the list of courses
+def saveCourses(courses):
+    with open('courses.pickle', 'wb') as f:
+        pickle.dump(courses, f)
+
+
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
 client = discord.Client()
+
+
+courses = loadCourses()
 
 
 @client.event
@@ -60,6 +78,9 @@ async def on_message(message):
             course, section = match.group(1)
             user = message.author.id
             print(f"User: {user} added -> Course: {course} Section: {section}")
+
+    # saves the list of courses
+    saveCourses(courses)
 
 
 client.run(token)
