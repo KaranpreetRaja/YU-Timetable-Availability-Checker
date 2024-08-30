@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 
 Faculty = "Lassonde School of Engineering - (LE)"
 Subject = "Electrical Engineering and Computer Science"
-Session = "Fall/Winter 2023-2024"
-CourseCode = "3311"
-Term = "F"
-Section = "E"
+Session = "Fall/Winter 2024-2025"
+CourseCode = "3214"
+Term = "W"
+Section = "M"
 
 load_dotenv()
 
@@ -31,6 +31,43 @@ options.add_argument('--disable-dev-shm-usage')
 driver = webdriver.Chrome(options=options)
 
 
+def login(PassportYorkUsername, PassportYorkPassword, driver):
+
+    try:
+        # Ensure login page is loaded
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.ID, "mli"))
+        )
+
+        # Login to Passport York
+        try:
+            # Fill in the Passport York login information
+            username_feild = driver.find_element(By.ID, "mli")
+            username_feild.send_keys(PassportYorkUsername)
+
+            time.sleep(random.uniform(1, 2))
+
+            password_feild = driver.find_element(By.ID, "password")
+            password_feild.send_keys(PassportYorkPassword)
+            print("Passport York login entered")
+
+            # press enter on keyboard
+            password_feild.send_keys(u'\ue007')
+
+            time.sleep(random.uniform(1, 2))
+        
+        except:
+            print("login failed")
+            driver.quit()
+            exit()
+
+    except:
+        
+        print("Not on the login page")
+        driver.quit()
+        exit()
+
 def checkAvaliblity(Faculty, Subject, Session, CourseCode, PassportYorkUsername, PassportYorkPassword, driver):
     url = "https://w2prod.sis.yorku.ca/Apps/WebObjects/cdm"
 
@@ -38,28 +75,29 @@ def checkAvaliblity(Faculty, Subject, Session, CourseCode, PassportYorkUsername,
 
     time.sleep(random.uniform(1, 2))
 
+    # check to see if page is loaded, logins in if needed
     try:
-        # Fill in the Passport York login information
-        username_feild = driver.find_element(By.ID, "mli")
-        username_feild.send_keys(PassportYorkUsername)
-
-        time.sleep(random.uniform(1, 2))
-
-        password_feild = driver.find_element(By.ID, "password")
-        password_feild.send_keys(PassportYorkPassword)
-        print("Passport York login entered")
-
-        # press enter on keyboard
-        password_feild.send_keys(u'\ue007')
+        
+        # check to see if page loaded
+        # finds the advanced search button with xpath: /html/body/p/table/tbody/tr[2]/td[2]/table/tbody/tr[2]/td/table/tbody/tr/td/ul/li[1]/ul/li[10]/a
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.XPATH, "/html/body/p/table/tbody/tr[2]/td[2]/table/tbody/tr[2]/td/table/tbody/tr/td/ul/li[1]/ul/li[10]/a"))
+        )
+        print("No login required")
 
     except:
+        print("Registrar page did not load")
+
+        login(PassportYorkUsername, PassportYorkPassword, driver)
+
         try:
             # check to see if page loaded
             WebDriverWait(driver, 100).until(
                 EC.presence_of_element_located(
                     (By.XPATH, "//option[contains(text(), 'Advanced Search')]"))
             )
-            print("No login required")
+            print("Failed to login")
 
         except:
 
@@ -159,6 +197,10 @@ def checkAvaliblity(Faculty, Subject, Session, CourseCode, PassportYorkUsername,
 
     time.sleep(random.uniform(1, 2))
 
+
+    # Login if needed
+    login(PassportYorkUsername, PassportYorkPassword, driver)
+
     elements = []
 
     try:
@@ -174,7 +216,7 @@ def checkAvaliblity(Faculty, Subject, Session, CourseCode, PassportYorkUsername,
             count += 1
 
     except:
-        print("done")
+        print("No more elements")
         for i in elements:
             print(i)
 
@@ -218,19 +260,23 @@ def checkAvaliblity(Faculty, Subject, Session, CourseCode, PassportYorkUsername,
     return elements
 
 
+
+def scrapeCourse(Faculty, Subject, Session, CourseCode, Term, Section, PassportYorkUsername, PassportYorkPassword, driver):
+    elements = checkAvaliblity(Faculty, Subject, Session, CourseCode, PassportYorkUsername, PassportYorkPassword, driver)
+    
+    if len(elements) > 0:
+        print("course not found")
+        return
+    
+    print("Sections: \n" + elements)
+
+
 def test():
     while True:
-        elements = checkAvaliblity(Faculty, Subject, Session, CourseCode,
-                                   PassportYorkUsername, PassportYorkPassword, driver)
-        time.sleep(random.uniform(100, 200))
-        if len(elements) > 0:
-            print("course not found")
-            break
-
-        print("Sections: \n" + elements)
-
-        wait = WebDriverWait(driver, 100000)
+        scrapeCourse(Faculty, Subject, Session, CourseCode, Term, Section, PassportYorkUsername, PassportYorkPassword, driver)
+        time.sleep(random.uniform(10, 20))
 
 
-test()
-driver.quit()
+if __name__ == "__main__":
+    test()
+    driver.quit()
